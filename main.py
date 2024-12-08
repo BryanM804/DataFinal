@@ -1,0 +1,3 @@
+import dbConnector
+
+dbConnector.getLiftsDF()
