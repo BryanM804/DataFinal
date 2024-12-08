@@ -1,4 +1,5 @@
 import mysql.connector
+import pandas as pd
 
 # Obviously not secure but this is just for my own use
 con = mysql.connector.connect(
@@ -10,10 +11,15 @@ con = mysql.connector.connect(
 
 def getLiftsDF():
     if con and con.is_connected():
-        with con.cursor() as cursor:
-            results = cursor.execute("SELECT * FROM lifts;")
-            lifts = cursor.fetchall()
-            for row in lifts:
-                print(row)
+        query = "SELECT * FROM lifts"
+        df = pd.read_sql(query, con=con)
+        return df
+    else:
+        print("Connection error.")
+
+def runQuery(query):
+    if con and con.is_connected():
+        df = pd.read_sql(query, con)
+        return df
     else:
         print("Connection error.")
