@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-DEBUG = True
+DEBUG = False
 
 movement = sys.argv[1] if len(sys.argv) >= 2 else None
 method = sys.argv[2] if len(sys.argv) >= 3 else None
@@ -272,8 +272,8 @@ plt.show()
 # Test size controls the split of the data 0.2=20%
 xtrain, xtest, ytrain, ytest = train_test_split(xvals, yvals, test_size=0.2)
 
-print(f"training x: {xtrain}, training y: {ytrain}")
-print(f"testing x: {xtest}, testing y: {ytest}")
+if DEBUG: print(f"training x: {xtrain}, training y: {ytrain}")
+if DEBUG: print(f"testing x: {xtest}, testing y: {ytest}")
 
 model = LinearRegression()
 model.fit(xtrain, ytrain)
