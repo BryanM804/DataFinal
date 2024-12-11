@@ -5,6 +5,9 @@ import pandas as pd
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 DEBUG = True
 
@@ -119,16 +122,21 @@ j = 0
 x = math.ceil(math.sqrt(len(dfs)))
 fig, axes = plt.subplots(x, x)
 
+# These are for the linear regression later
+xvals = []
+yvals = []
+my_y_fit = 0
+
 if method == "day_average":
     for df in dfs:
         # Get the average of all the sets of movement for each day for each user and plot them
         prev_date = df["date"][0]
+        user = df["userID"][0]
         count = 0
         avgs = []
         dates = []
         sum = 0
-        user = df["userID"][0]
-
+        
         for set in df.itertuples():
             if set.movement != movement:
                 continue
@@ -146,17 +154,23 @@ if method == "day_average":
                 sum = 0
         if DEBUG: print(f"User: {user}, Dates: {dates} Avgs: {avgs}")
         if len(avgs) > 1:
+            username = dbConnector.getDisplayName(df["userID"][0])
             xs = [x for x in range(len(dates))]
             xs = np.array(xs)
             slope, intercept = np.polyfit(xs, avgs, 1)
             y_fit = slope * xs + intercept
+
+            if username == "brymul":
+                xvals = [[x] for x in range(len(xs))]
+                yvals = avgs
+                my_y_fit = y_fit
 
             axes[i, j].scatter(dates, avgs, color="blue", label="Set Averages Per Day")
             axes[i, j].plot(dates, y_fit, color="orange")
             axes[i, j].set_xlabel("Date")
             axes[i, j].set_ylabel("Average Set Total")
             axes[i, j].legend()
-            axes[i, j].set_title(dbConnector.getDisplayName(df["userID"][0]))
+            axes[i, j].set_title(username)
         j = j if i + 1 < x else j + 1
         i = i + 1 if i + 1 < x else 0
 elif method == "adjusted_average":
@@ -187,17 +201,23 @@ elif method == "adjusted_average":
                 sum = 0
         if DEBUG: print(f"User: {user}, Dates: {dates} Avgs: {avgs}")
         if len(avgs) > 1:
+            username = dbConnector.getDisplayName(df["userID"][0])
             xs = [x for x in range(len(dates))]
             xs = np.array(xs)
             slope, intercept = np.polyfit(xs, avgs, 1)
             y_fit = slope * xs + intercept
+
+            if username == "brymul":
+                xvals = [[x] for x in range(len(xs))]
+                yvals = avgs
+                my_y_fit = y_fit
 
             axes[i, j].scatter(dates, avgs, color="blue", label="Adjusted Day Averages")
             axes[i, j].plot(dates, y_fit, color="orange")
             axes[i, j].set_xlabel("Date")
             axes[i, j].set_ylabel("(Adjusted) Average Set Total")
             axes[i, j].legend()
-            axes[i, j].set_title(dbConnector.getDisplayName(df["userID"][0]))
+            axes[i, j].set_title(username)
         j = j if i + 1 < x else j + 1
         i = i + 1 if i + 1 < x else 0
 elif method == "best":
@@ -222,18 +242,53 @@ elif method == "best":
                 max = set.settotal
         if DEBUG: print(f"User: {user}, Maxes: {maxes}, Dates: {dates}")
         if len(maxes) > 1:
+            username = dbConnector.getDisplayName(df["userID"][0])
             xs = [x for x in range(len(dates))]
             xs = np.array(xs)
             slope, intercept = np.polyfit(xs, maxes, 1)
             y_fit = slope * xs + intercept
+
+            if username == "brymul":
+                xvals = [[x] for x in range(len(xs))]
+                yvals = maxes
+                my_y_fit = y_fit
 
             axes[i, j].scatter(dates, maxes, color="blue", label="Best Totals")
             axes[i, j].plot(dates, y_fit, color="red")
             axes[i, j].set_xlabel("Date")
             axes[i, j].set_ylabel("Best Set Total")
             axes[i, j].legend()
-            axes[i, j].set_title(dbConnector.getDisplayName(df["userID"][0]))
+            axes[i, j].set_title(username)
         j = j if i + 1 < x else j + 1
         i = i + 1 if i + 1 < x else 0
 print("Showing graphs...")
+plt.show()
+
+# Prediction Using Linear Regression
+
+# Since my user has by far the most data that is the one I will use for this part
+# By this point whichever metric the user has chosen should have populated xvals and yvals with my data
+
+# Test size controls the split of the data 0.2=20%
+xtrain, xtest, ytrain, ytest = train_test_split(xvals, yvals, test_size=0.2)
+
+print(f"training x: {xtrain}, training y: {ytrain}")
+print(f"testing x: {xtest}, testing y: {ytest}")
+
+model = LinearRegression()
+model.fit(xtrain, ytrain)
+
+ypredict = model.predict(xtest)
+mserror = mean_squared_error(ytest, ypredict)
+r2score = r2_score(ytest, ypredict)
+
+print(f"Mean sqaured error: {mserror}")
+print(f"R squared score: {r2score}")
+
+predict_line = model.predict(xvals)
+
+plt.scatter(xvals, yvals, color="blue")
+plt.plot(xvals, predict_line, color="orange", label="Predicted")
+plt.plot(xvals, my_y_fit, color="red", label="Best Fit")
+plt.legend()
 plt.show()
