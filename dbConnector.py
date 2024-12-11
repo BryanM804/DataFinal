@@ -35,7 +35,13 @@ def getExerciseList():
 def getDisplayName(id):
     if con and con.is_connected():
         with con.cursor() as cursor:
-            query = "SELECT name FROM accounts WHERE id="+id
+            query = "SELECT name FROM workoutdb.accounts WHERE id="+id+";"
             cursor.execute(query)
             return cursor.fetchone()[0]
 
+def checkMovementList(m):
+    if con and con.is_connected():
+        with con.cursor() as cursor:
+            query = "SELECT movement FROM workoutdb.exercises WHERE movement='"+m+"';"
+            cursor.execute(query)
+            return cursor.fetchone() != None

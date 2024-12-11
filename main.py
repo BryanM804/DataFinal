@@ -1,7 +1,6 @@
 import dbConnector
 import time
 import sys
-from threading import Thread
 import pandas as pd
 import numpy as np
 import math
@@ -26,6 +25,10 @@ if (movement == None or method == None):
     for m in analysis_methods:
         print(m)
     print("Run with H <analysis_method> for more details")
+    exit()
+
+if not dbConnector.checkMovementList(movement):
+    print(f"{movement} is not a valid movement, please check the movement list with 'L'")
     exit()
 
 users = dbConnector.runQuery("SELECT DISTINCT userID FROM lifts;")["userID"]
@@ -131,8 +134,9 @@ if method == "day_average":
                 continue
 
             if set.date == prev_date:
-                sum += set.settotal
-                count += 1
+                if set.settotal != None:
+                    sum += set.settotal
+                    count += 1
             else:
                 if count > 0:
                     avgs.append(sum/count)
@@ -167,14 +171,14 @@ elif method == "adjusted_average":
         for set in df.itertuples():
             if set.date == prev_date:
                 allcount += 1
-                if set.movement == movement:
+                if set.movement == movement and set.settotal != None:
                     sum += set.settotal
                     count += 1
             else:
                 if count > 0:
                     avg = sum/count
-                    avg += 100 * (allcount / 4)
-                    if DEBUG: print(f"Adding {(allcount/4) * 100} to avg, allcount at {allcount} sets")
+                    avg += 100 * ((allcount - count) / 4)
+                    if DEBUG: print(f"Adding {((allcount - count) / 4) * 100} to avg, allcount at {allcount} sets")
                     avgs.append(avg)
                     dates.append(prev_date)
                 prev_date = set.date
@@ -231,5 +235,5 @@ elif method == "best":
             axes[i, j].set_title(dbConnector.getDisplayName(df["userID"][0]))
         j = j if i + 1 < x else j + 1
         i = i + 1 if i + 1 < x else 0
-
+print("Showing graphs...")
 plt.show()
