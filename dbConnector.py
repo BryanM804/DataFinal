@@ -23,3 +23,19 @@ def runQuery(query):
         return df
     else:
         print("Connection error.")
+
+def getExerciseList():
+    if con and con.is_connected():
+        query = "SELECT movement FROM workoutdb.exercises;"
+        df = pd.read_sql(query, con)
+        return df
+    else:
+        print("Connection error.")
+
+def getDisplayName(id):
+    if con and con.is_connected():
+        with con.cursor() as cursor:
+            query = "SELECT name FROM accounts WHERE id="+id
+            cursor.execute(query)
+            return cursor.fetchone()[0]
+
