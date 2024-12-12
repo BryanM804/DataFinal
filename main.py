@@ -13,15 +13,23 @@ DEBUG = False
 
 movement = sys.argv[1] if len(sys.argv) >= 2 else None
 method = sys.argv[2] if len(sys.argv) >= 3 else None
+analysis_methods = ["day_average", "adjusted_average", "best"]
 
-if (movement == "L"):
+if movement == "L":
     for m in dbConnector.getExerciseList()["movement"]:
         print(m)
     exit()
-
-if (movement == None or method == None):
-    analysis_methods = ["day_average", "adjusted_average", "best"]
-
+elif movement == "H" and method in analysis_methods:
+    if method == "day_average":
+        print("Graphs the average total weight * reps for each day that each user has logged <movement>.")
+    elif method == "adjusted_average":
+        print("Graphs the average total weight * reps for each day that each user has logged <movement>.")
+        print("The averages are adjusted based on how many prior sets that user has logged during each day the user has also logged <movement>.")
+    elif method == "best":
+        print("Graphs the best total weight * reps each user had for each day they logged <movement>.")
+    exit()
+    
+if movement == None or method == None:
     print("Missing arguments, please run with a movement and analysis method as arguments.")
     print("Or run with 'L' for a list of valid movements.")
     print("Valid analysis methods: ")
