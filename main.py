@@ -28,7 +28,7 @@ elif movement == "H" and method in analysis_methods:
     elif method == "best":
         print("Graphs the best total weight * reps each user had for each day they logged <movement>.")
     exit()
-    
+
 if movement == None or method == None:
     print("Missing arguments, please run with a movement and analysis method as arguments.")
     print("Or run with 'L' for a list of valid movements.")
@@ -192,7 +192,8 @@ elif method == "adjusted_average":
 
         for set in df.itertuples():
             if set.date == prev_date:
-                allcount += 1
+                if count == 0:
+                    allcount += 1
                 if set.movement == movement and set.settotal != None:
                     sum += set.settotal
                     count += 1
